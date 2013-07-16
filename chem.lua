@@ -32,6 +32,7 @@ function Chem.create(formula)  --PROBLEM: com.x can be changed with normal usage
 			com.sticky = decider(com.sticky)
 		end
 		if chempound[i] == "N" then com.explosive = decider(com.explosive) end
+		--many more properties go here, e.g. regeneration, electricity, useTool (for repairs)
 		decider(com.total)  --add to total value
 		chemp = _G[chempound[i]]   --takes the global variable that chem is
 		if chemp == nil then chemp = 0 end
