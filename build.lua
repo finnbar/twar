@@ -72,10 +72,12 @@ function build.make()   --release the building into the field! yaaaayyy!
 	for z=1,5,1 do  --for every value of Z test if there are any blocks, if not, block above drops down (GRAVITY!)
 		for x=1,5,1 do   --every value of X (I am so glad that I went for 5x5x5, not 10x10x10!)
 			for y=1,5,1 do --every value of Y
-				if unit[x][y][z] == nil then
-					local copy = unit[x][y][z+1]  --cut the block above
-					unit[x][y][z+1] = nil   --down one level
-					unit[x][y][z] =	copy    --and paste
+				if unit[x][y][z] == nil then     --if there's no block in that place
+					if build.testFloat(x,y,z) == 0 then   --if not sticky or floating then
+						local copy = unit[x][y][z+1]  --cut the block above
+						unit[x][y][z+1] = nil   --down one level
+						unit[x][y][z] =	copy    --and paste
+					end
 				end
 			end
 		end
@@ -108,4 +110,38 @@ function build.clear(restore)  --when called w/ restore == 1, restores 50% energ
 			end
 		end
 	end
+end
+
+function build.testFloat(x,y,z)
+	local density = 0
+	for xT=1,5,1 do
+		for yT=1,5,1 do
+			density = density + unit[xT][yT][z].density
+		end
+	end
+	local float = 0
+	for xT=1,x,1 do   --check all blocks below stated
+		for yT=1,y,1 do
+			float = float + unit[xT][yT][z].density
+		end
+	end
+	local sticky = 0
+	for zT=1,5,1 do
+		if unit[x+1][y][z].sticky ~= nil then sticky = 1
+		elseif unit[x-1][y][z].sticky ~= nil then sticky = 1
+		elseif unit[x][y+1][z].sticky ~= nil then sticky = 1
+		elseif unit[x][y-1][z].sticky ~= nil then sticky = 1
+		elseif unit[x][y][z].sticky ~= nil then
+			if unit[x+1][y][z] ~= nil then sticky = 1
+			elseif unit[x-1][y][z] ~= nil then sticky = 1
+			elseif unit[x][y+1][z] ~= nil then sticky = 1
+			elseif unit[x][y-1][z] ~= nil then sticky = 1
+			else sticky = 0 end
+		else sticky = 0 end
+	end
+	if sticky == 1 then
+		return 1
+	elseif density < float then
+		return 1
+	else return 0 end
 end

@@ -1,7 +1,9 @@
+user = { } --TEMPORARY
 Chem = { }
 Chem.__index = Chem
 energy = 0
 chemp = 0
+id = 0
 H = 1    --atom energies. Will grow, I promise. WILL BE READ-ONLY
 Fe = 3
 He = 2
@@ -9,6 +11,9 @@ Cu = 4
 Si = 5
 U = 7
 N = 3
+Rb = 2
+
+require "requirer"
 
 --HOW IT WORKS: block = Chem.create(formula) where formula is a string of elements, eg "Fe H U H"
 function Chem.create(formula)  --PROBLEM: com.x can be changed with normal usage (e.g. com.x = 9000), needs read-only or check per frame
@@ -31,6 +36,7 @@ function Chem.create(formula)  --PROBLEM: com.x can be changed with normal usage
 			com.radioactive = decider(com.radioactive)
 			com.sticky = decider(com.sticky)
 		end
+		if chempound[i] == "Rb" then com.force = decider(com.force) end
 		if chempound[i] == "N" then com.explosive = decider(com.explosive) end
 		--many more properties go here, e.g. regeneration, electricity, useTool (for repairs)
 		decider(com.total)  --add to total value
@@ -43,6 +49,17 @@ function Chem.create(formula)  --PROBLEM: com.x can be changed with normal usage
 	local total = com.total - com.density
 	com.energy = energy
 	if total > com.density then com.unstable = true else com.unstable = false end  --stops over-powering of blocks. an unstable block may collapse on placement or transfer
+	local dont = nil
+	for x=1,#User.elements(),1 do
+		if com == User.elements()[x] then
+			dont = x
+		end
+	end
+	if dont == nil then
+		User.elementsC(com)
+		User.id = id
+		id = id + 1
+	else user.id = user.elements()[x] end
 	return com   --return created class
 end
 
