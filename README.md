@@ -3,32 +3,58 @@ twar
 
 twar - a game where you code on twitter in lua to synthesise blocks, build and conquer!
 
-what is this madness?!
-=======================
+api
+===
 
-this is a game where you tweet code, which causes stuff to happen online. you can build units out of blocks and then control them, which is cool!
+There is a file called temp_api.lua which gives examples of how the code works and what I need to do (which is a *lot*)
 
-this is in development, right?
-==============================
+But here's some quick examples of what is done:
 
-correctamondo my friend!
+<code>block = Chem.create("Fe H U Rb")        --create a block using these elements</code>
+<code>build.placeBlock(x,y,z,block)           --place that block in the workspace</code>
+<code>build.read(x,y,z)                       --what is the block in x,y,z?</code>
+<code>unit,unitBlocks = build.make()          --turn the array of blocks into a moveable "unit"</code>
+<code>Unit.deploy(unit,unitBlocks,spawnPoint) --place the new "unit" on the field</code>
 
-how can I help?
-===============
+AND COMING SOON... ISH... MAYBE...
 
-ooh, thanks! you can help by checking over my scruffy code, and once I've finished the basics (which AREN'T finished yet), you can add stuff to it!
+<code>Unit.on(x,y,blockX,blockY,side)         --power on blockX,blockY within field x,y on side "side"</code>
+<code>Unit.off(x,y,blockX,blockY,side)        --pretty obvious</code>
+<code>Unit.sense(x,y,blockX,blockY,side)      --returns 0 if no electricity present, else returns 1</code>
 
-what are you actually aiming to do?
-===================================
+<code>twar.declare(@user)                     --declares (t)war on @user</code>
+<code>twar.conditions(conditions)             --sets conditions, e.g. energy limit</code>
 
-see http://ideasquish.wordpress.com/2013/06/27/twitter-war-by-terrabyte_aura/ (I am terrabyte_aura, btw), and the temp_api.lua file to see what I want to achieve!
+So yeah.
+The actual idea of twar is to destroy your opponents "castle" (name in progress), by using units. These units can saboutage other units and damage the castle in a variety of ways:
+<ul>
+<li>Damage them with explosive blocks (which explode on contact with another unit or when electricity is next to it)</li>
+<li>Fling heavy blocks (with explosives) to weigh down units and prevent them from moving</li>
+<li>Fling electrical blocks to cause explosives to pre-detonate</li>
+<li>Block the way (with super heavy units).</li>
+<li>Stick units together to create larger units with massive mechanisms (such as jetpacks made of multiple Rb blocks).</li>
+</ul>
 
-is there going to be a GUI?
-===========================
+Each unit is made of blocks, which are made with atoms, each with their own properties (list unfinished):
+<ul>
+<li>H & Pb: Density, for super heavy blocks but also stablility (as blocks cannot be made without H)</li>
+<li>Fe: Blast Resistance, for resisting blasts I guess!</li>
+<li>N: Explosive, for BLOWING STUFF UP MOTHER FLUFFER.</li>
+<li>U: Radioactive and sticky, for joining units, but possibly making them unstable in the process.</li>
+<li>Cu: Conductivity, for conducting the electricity from the computer around the unit.</li>
+<li>Si: CPU/Sentience (needs a name), which allows units to be controlled, and acts as a power source.</li>
+<li>Sn: Destructible, can be easily destroyed with electricity, which is useful for setting off explosives when hit.</li>
+<li>Rb: Force, provides force outwards when electricity (heat) is applied, for actually moving units.</li>
+</ul>
 
-yes there is! I'm going to write it in Polycode or LOVE2D, so yeah!
+These blocks, when joined together, can do amazing things and stuff like that, in order to help you win the (t)war!
 
-you seem awesome
-================
+naq
+===
+(never asked questions as nobody has asked me anything yet)
 
-thank you! you seem awesome too!
+Go to the GitHub pages site to find out about the inspiration and stuff!
+http://finnbar.github.io/twar/
+
+Also, go to ideasquish as it's cool! Also, it's got my original idea on there.
+http://ideasquish.wordpress.com/2013/06/27/twitter-war-by-terrabyte_aura/
