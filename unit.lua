@@ -5,6 +5,11 @@ p1S = {{3,2},{4,2},{5,2},{6,2}}
 p2S = {{3,7},{4,7},{5,7},{6,7}}
 p3S = {{2,3},{2,4},{2,5},{2,6}}
 p4S = {{7,3},{7,4},{7,5},{7,6}}
+up = {{1,8},{2,8},{3,8},{4,8},{5,8},{6,8},{7,8},{8,8}}
+down = {{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1}}
+left = {{1,8},{1,7},{1,6},{1,5},{1,4},{1,3},{1,2},{1,1}}
+right = {{8,8},{8,7},{8,6},{8,5},{8,4},{8,3},{8,2},{8,1}}
+
 playerName = "p1S"  --temporary, will be in twar.declare(who?)
 
 function Unit.init()  --prepares the field
@@ -32,7 +37,7 @@ function Unit.deploy(unitOrig,unitBlocksOrig,square)   --unit & unitBlocks (from
 		for x=1,5,1 do   --every value of X (I am so glad that I went for 5x5x5, not 10x10x10!)
 			for y=1,5,1 do --every value of Y
 				if unit[x][y][z] == nil then     --if there's no block in that place
-					if Unit.testFloat(x,y,z) == 0 then   --if not sticky or floating then
+					if Unit.testFloat(x,y,z,unit) == 0 then   --if not sticky or floating then
 						local copy = unit[x][y][z+1]  --cut the block above
 						unit[x][y][z+1] = nil   --down one level
 						unit[x][y][z] =	copy    --and paste
@@ -52,14 +57,53 @@ function Unit.deploy(unitOrig,unitBlocksOrig,square)   --unit & unitBlocks (from
 end
 
 --[[ What's next? I hear me ask. Stuff, I announce crazily.
-Unit.move(x,y,newX,newY) -- checks for ownership, sentience and if the unit CAN move (power > friction) and then moves it ONE space only (it won't do it if the difference between new and old is > 1). LOCAL FUNCTION FOR TESTING WITH.
 Unit.rotate(x,y,degrees) -- checks for ownership, sentience and if the unit CAN move (power > friction, ignored if centre block), and then rotates it by degrees (only multiples of 90 are valid). LOCAL FUNCTION FOR TESTING WITH.
 Unit.on(x,y,blockX,blockY,side) -- checks for ownership, if the block (blockX,blockY) has a CPU val, and then powers side <side>.
 Unit.off(x,y,blockX,blockY,side) -- opposite of Unit.on.
 Unit.sense(x,y,blockX,blockY,side) -- if sentient, returns 0 if unpowered or 1 if powered.
 ]]--
 
-local function Unit.testFloat(x,y,z)
+local function Unit.move(x,y,z,dir)    --used to calculate if a block can move
+	local friction = 0
+	local force = 0
+	for xT=1,5,1 do
+		for yT=1,5,1 do
+			if Unit.testFloat(xT,xY,1,field[x][y][z]) == 0 then
+				for zT=1,5,1 do
+					friction = unit[xT][yT][zT].density + friction
+				end
+			end
+		end
+	end
+	local rbs = { }   --stores all fuel blocks
+	for f=1,8,1 do
+		local temp = _G[dir]
+		local fBlock = unit[temp[f][1]][temp[f][2]].force  --force of block on side
+		if fBlock ~= nil then
+			force = force + fBlock    --calculate total force from side <dir>
+			table.insert(rbs,temp[f])
+		end
+	end
+	if force < friction then
+		return 0
+	else
+		local dif = force - friction
+		local b = 1 --counter
+		while true do
+			local i = rbs[b][1]
+			local j = rbs[b][2]
+			if unit[i][j].force >= dif then
+				unit[i][j].force = unit[i][j].force - dif   --pay with reduction of force
+				break                          --if four force is required, four is payed for
+			else
+				dif = dif - unit[i][j].force
+			end
+		end
+		return 1
+	end
+end
+
+local function Unit.testFloat(x,y,z,unit)
 	local density = 0
 	for xT=1,5,1 do
 		for yT=1,5,1 do
