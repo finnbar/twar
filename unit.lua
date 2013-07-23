@@ -58,6 +58,7 @@ end
 
 --[[ What's next? I hear me ask. Stuff, I announce crazily.
 Unit.rotate(x,y,degrees) -- checks for ownership, sentience and if the unit CAN move (power > friction, ignored if centre block), and then rotates it by degrees (only multiples of 90 are valid). LOCAL FUNCTION FOR TESTING WITH.
+Unit.Update() -- works out where the electricity is going
 Unit.on(x,y,blockX,blockY,side) -- checks for ownership, if the block (blockX,blockY) has a CPU val, and then powers side <side>.
 Unit.off(x,y,blockX,blockY,side) -- opposite of Unit.on.
 Unit.sense(x,y,blockX,blockY,side) -- if sentient, returns 0 if unpowered or 1 if powered.
