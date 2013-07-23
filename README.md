@@ -49,6 +49,22 @@ Each unit is made of blocks, which are made with atoms, each with their own prop
 
 These blocks, when joined together, can do amazing things and stuff like that, in order to help you win the (t)war!
 
+However, there is one extra feature that you may want to know about: shortenings. To make it possible to tweet this code, there are new shortenings, such as l.fun (which is equal to function (in Lua)). I'm hoping to be able to add more languages in the future.
+
+You can also steal other people's tweets for your code. Everyone's tweet is a useable function, for example, if I tweeted:
+
+<code>l.fun a() build.placeBlock(1,1,1,block) end"</code>
+
+then you could use it as your own with:
+
+<code>
+for x=1,5,1 do
+  t_a.a()
+end
+</code>
+
+allowing you to steal your opponent's good code!
+
 naq
 ===
 (never asked questions as nobody has asked me anything yet)
@@ -58,3 +74,6 @@ http://finnbar.github.io/twar/
 
 Also, go to ideasquish as it's cool! Also, it's got my original idea on there.
 http://ideasquish.wordpress.com/2013/06/27/twitter-war-by-terrabyte_aura/
+
+ALSO ALSO ALSO ALSO ALSO:
+https://www.dropbox.com/s/9o6d9bmfl5y84ls/whiteboardDesign.jpg (design stuff)
