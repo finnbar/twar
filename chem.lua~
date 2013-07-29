@@ -26,7 +26,6 @@ function Chem.create(formula)  --PROBLEM: com.x can be changed with normal usage
 	end
 	setmetatable(com,Chem)
 	com.formula = formula
-	com.hp = 0
 	for i=1,#chempound,1 do   --decide properties
 		if chempound[i] == "H" then com.density = decider(com.density) end
 		if chempound[i] == "Fe" then com.blastRes = decider(com.blastRes) end

@@ -369,7 +369,7 @@ end
 
 function testFloat(x,y,z,fX,fY)
 	local density = 0
-	for zT=1,7,1 do
+	for zT=1,z,1 do
 		if field[fX][fY][x][y][zT].density ~= nil then
 			density = density + field[fX][fY][x][y][zT].density
 		end
