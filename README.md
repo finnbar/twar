@@ -6,24 +6,26 @@ twar - a game where you code on twitter in lua to synthesise blocks, build and c
 api
 ===
 
-There is a file called temp_api.lua which gives examples of how the code works and what I need to do (which is a *lot*)
+There is a file called temp_api.lua which gives examples of how the code works and what I need to do (which is a *lot*). temp_api is OUT OF DATE!!! IGNORE IT FOR NOW.
+
+A couple of notes: in a recent commit, naming conventions were changed from function.sub() to Function:sub(), which allows me to look out for cheaters! Grr, cheaters!
 
 But here's some quick examples of what is done:
 
-<code>block = Chem.create("Fe H U Rb")        --create a block using these elements</code>
-<code>build.placeBlock(x,y,z,block)           --place that block in the workspace</code>
-<code>build.read(x,y,z)                       --what is the block in x,y,z?</code>
-<code>unit,unitBlocks = build.make()          --turn the array of blocks into a moveable "unit"</code>
-<code>Unit.deploy(unit,unitBlocks,spawnPoint) --place the new "unit" on the field</code>
+<code>block = Chem:create("Fe H U Rb")        --create a block using these elements</code>
+<code>build:placeBlock(x,y,z,block)           --place that block in the workspace</code>
+<code>build:read(x,y,z)                       --what is the block in x,y,z?</code>
+<code>unit = build:make()                     --turn the array of blocks into a moveable "unit"</code>
+<code>Unit:deploy(unit,unitBlocks,spawnPoint) --place the new "unit" on the field</code>
 
 AND COMING SOON... ISH... MAYBE...
 
-<code>Unit.on(x,y,blockX,blockY,side)         --power on blockX,blockY within field x,y on side "side"</code>
-<code>Unit.off(x,y,blockX,blockY,side)        --pretty obvious</code>
-<code>Unit.sense(x,y,blockX,blockY,side)      --returns 0 if no electricity present, else returns 1</code>
+<code>Unit:on(x,y,blockX,blockY,side)         --power on blockX,blockY within field x,y on side "side"</code>
+<code>Unit:off(x,y,blockX,blockY,side)        --pretty obvious</code>
+<code>Unit:sense(x,y,blockX,blockY,side)      --returns 0 if no electricity present, else returns 1</code>
 
-<code>twar.declare(@user)                     --declares (t)war on @user</code>
-<code>twar.conditions(conditions)             --sets conditions, e.g. energy limit</code>
+<code>twar:declare(@user)                     --declares (t)war on @user</code>
+<code>twar:conditions(conditions)             --sets conditions, e.g. energy limit</code>
 
 So yeah.
 The actual idea of twar is to destroy your opponents "castle" (name in progress), by using units. These units can saboutage other units and damage the castle in a variety of ways:
@@ -53,7 +55,7 @@ However, there is one extra feature that you may want to know about: shortenings
 
 You can also steal other people's tweets for your code. Everyone's tweet is a useable function, for example, if I tweeted:
 
-<code>l.fun a() build.placeBlock(1,1,1,block) end"</code>
+<code>l.fun a() build:placeBlock(1,1,1,block) end"</code>
 
 then you could use it as your own with:
 
@@ -77,3 +79,20 @@ http://ideasquish.wordpress.com/2013/06/27/twitter-war-by-terrabyte_aura/
 
 ALSO ALSO ALSO ALSO ALSO:
 https://www.dropbox.com/s/9o6d9bmfl5y84ls/whiteboardDesign.jpg (design stuff)
+
+thanks to
+===
+
+EVERYONE! Alright, maybe not everyone. But certainly:
+<ul>
+<li> Puzzlem00n, for dealing with my lack of Lua knowledge when we were creating <a href="http://allhailnoah.github.io/PonycornMusicDreamers/">"Song Of Sparks"</a> and showing me this great language!</li>
+<li> Michcioperz, a pretty great guy!</li>
+<li> iandioch, overally crazy game-making person that got me into the group as well as a formidable enemy in my first twar.</li>
+<li> THE LUA DOCS. Tim'll know why :P</li>
+<li> And anyone else I've forgotten.</li>
+</ul>
+
+libraries used so far
+===
+
+Kikito's "middleclass": https://github.com/kikito/middleclass

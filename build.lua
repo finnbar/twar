@@ -1,11 +1,19 @@
-local building = {{{},{},{},{},{}},{{},{},{},{},{}},{{},{},{},{},{}},{{},{},{},{},{}},{{},{},{},{},{}}}  --a 5x5x5 array
-build = { }
-build.__index = build
+local building = {{{0},{0},{0},{0},{0}},{{0},{0},{0},{0},{0}},{{0},{0},{0},{0},{0}},{{0},{0},{0},{0},{0}},{{0},{0},{0},{0},{0}}}  --a 5x5x5 array
+local unit = {}
 user = { }     --may be moved to user.lua, which will mainly hold tweets (user-created functions) and stats
-user.__index = user    --thought: always truncate energy after command?
+user.__index = user
 user.energy = 9000   --TEMPORARY!
+resetter = 1
 
-function build.placeBlock(x,y,z,block)  --obvious arguments
+require("middleclass")
+Build = class("Build")
+
+function Build:placeBlock(x,y,z,block)  --obvious arguments
+	if resetter == 1 then
+		Build:empty(0)
+		resetter = 0
+	end
+	if Build:authenticate(block) == 0 then return "nice try, suckah" end  --checks if someone is trying to cheat (by making a block without paying for energy with: block = { } block.blastRes = 9000 and so on.
   if x ~= nil then	  --bonus: use nil for x then it won't do anything except return 1 for "this block COULD be placed" and 0 for "no energy, suckah!"
 		if user.energy >= block.energy then
 			building[x][y][z] = block
@@ -16,16 +24,25 @@ function build.placeBlock(x,y,z,block)  --obvious arguments
 end
 end
 
-function build.rmBlock(x,y,z,block)  --obvious arguments. Removes block and returns 50% energy. Woot!
+function Build:rmBlock(x,y,z,block)  --obvious arguments. Removes block and returns 50% energy. Woot!
+	if resetter == 1 then
+		Build:empty(0)
+		resetter = 0
+	end
 	if building[x][y][z] == block then
-		building[x][y][z] = nil
+		building[x][y][z] = 0
 		local en = block.energy/2
 		user.energy = user.energy + en
 		return 1
 	else return 0 end
 end
 
-function build.suspen(x,y,z,block)  --obvious args. builds a suspension block, which is 1/4 of the size, takes 1/4 of the energy but has 1/4 of the stats...
+function Build:suspen(x,y,z,block)  --obvious args. builds a suspension block, which is 1/4 of the size, takes 1/4 of the energy but has 1/4 of the stats...
+	if resetter == 1 then
+		Build:empty(0)
+		resetter = 0
+	end
+	if Build:authenticate(block) == 0 then return "nice try, suckah" end
 	quart = block
 	if quart.density ~= nil then quart.density = quart.density/4 end   --add new properties as they come
 	if quart.density ~= nil then quart.blastRes = quart.blastRes/4 end
@@ -45,64 +62,47 @@ function build.suspen(x,y,z,block)  --obvious args. builds a suspension block, w
 	end
 end
 
-function build.make()   --release the building into the field! yaaaayyy!	
-	local unit = {{{},{},{},{},{}},{{},{},{},{},{}},{{},{},{},{},{}},{{},{},{},{},{}},{{},{},{},{},{}}}
-	local unitBlocks = { }
-	local assigned = false
-	unitBlocks[1] = building[1][1][1]   --SOMETHING IS GOING WRONG. unitBlocks[a][b] has nil
-	for x=1,5,1 do     --for every value of x
-		for y=1,5,1 do   --of y
-			for z=1,5,1 do --of z do
-				for q=1,#unitBlocks,1 do    --for each known block (for this UNIT)
-					if unitBlocks[q] == building[x][y][z] then   --check if it's the same block
-						if unitBlocks[q].density == building[x][y][z].density then
-							unit[x][y][z] = q    --it's the same, link to it
-							assigned = true
-						end
-					end
-				end
-				if assigned == false then
-					unitBlocks[#unitBlocks + 1] = building[x][y][z]
-					unit[x][y][z] = #unitBlocks   --not the same, create a new entry for it
-				end
-				assigned = false   --RESET!
-			end
-		end
-	end  --you've checked every value now
+function Build:make()   --release the building into the field! yaaaayyy!	
+	if resetter == 1 then
+		Build:empty(0)
+		resetter = 0
+	end
+	unit = Build:new()
+	for x=1,5,1 do
+		unit[x] = building[x]  --cp building into unit w/o removing instance status
+	end
 	for z=1,5,1 do  --for every value of Z test if there are any blocks, if not, block above drops down (GRAVITY!)
 		for x=1,5,1 do   --every value of X (I am so glad that I went for 5x5x5, not 10x10x10!)
 			for y=1,5,1 do --every value of Y
-				if unit[x][y][z] == nil then     --if there's no block in that place
-					if build.testFloat(x,y,z) == 0 then   --if not sticky or floating then
+				if unit[x][y][z] == 0 then     --if there's no block in that place
+					if Build:testFloat(x,y,z,unit) == 0 then   --if not sticky or floating then
 						local copy = unit[x][y][z+1]  --cut the block above
-						unit[x][y][z+1] = nil   --down one level
+						unit[x][y][z+1] = 0   --down one level
 						unit[x][y][z] =	copy    --and paste
 					end
 				end
 			end
 		end
-	end --DO ALL THE METATABLE JAZZ (yay! jazz!!) <- NOTE: NO METATABLE JAZZ REQUIRED YET. AWW.
-	build.clear(0)
-	return unit, unitBlocks  --requires BOTH
-end  --hint: want to find out a stat? run unitBlocks[blockNum].stat
---or even unitBlocks[unit[x][y][z]].stat for ultimate control.
---STILL NEEDS TO BE READ-ONLY!!!
+	end
+	resetter = 1
+	return unit
+end
 
-function build.read(x,y,z)    --forcing it to read, but making it unable to write, building[x][y][z]!
+function Build:read(x,y,z)    --forcing it to read, but making it unable to write, building[x][y][z]!
 	return building[x][y][z]
 end
 
-function build.readAll()
+function Build:readAll()
 	return building
 end
 
-function build.clear(restore)  --when called w/ restore == 1, restores 50% energy. if called with restore == 0 (when used by build.make()), it doesn't restore
+function Build:empty(restore)  --when called w/ restore == 1, restores 50% energy. if called with restore == 0 (when used by build.make()), it doesn't restore
 	for x=1,5,1 do
 		for y=1,5,1 do
 			for z=1,5,1 do
-				if building[x][y][z] ~= nil then
-					local en = building[x][y][z].energy/2
-					building[x][y][z] = nil
+				if instanceOf(Chem,building[x][y][z]) then
+					if restore == 1 then local en = building[x][y][z].energy/2 end
+					building[x][y][z] = 0
 					if restore == 1 then
 						user.energy = user.energy + en
 					end
@@ -112,36 +112,75 @@ function build.clear(restore)  --when called w/ restore == 1, restores 50% energ
 	end
 end
 
-function build.testFloat(x,y,z)
+function Build:testFloat(x,y,z,unit)
 	local density = 0
 	for xT=1,5,1 do
 		for yT=1,5,1 do
-			density = density + unit[xT][yT][z].density
+			if instanceOf(Chem,unit[xT][yT][z]) then
+				if unit[xT][yT][z].density ~= nil then
+					density = density + unit[xT][yT][z].density
+				end
+			end
 		end
 	end
 	local float = 0
 	for xT=1,x,1 do   --check all blocks below stated
 		for yT=1,y,1 do
-			float = float + unit[xT][yT][z].density
+			if instanceOf(Chem,unit[xT][yT][z]) then
+				if unit[xT][yT][z].density ~= nil then
+					float = float + unit[xT][yT][z].density
+				end
+			end
 		end
 	end
 	local sticky = 0
 	for zT=1,5,1 do
-		if unit[x+1][y][z].sticky ~= nil then sticky = 1
-		elseif unit[x-1][y][z].sticky ~= nil then sticky = 1
-		elseif unit[x][y+1][z].sticky ~= nil then sticky = 1
-		elseif unit[x][y-1][z].sticky ~= nil then sticky = 1
-		elseif unit[x][y][z].sticky ~= nil then
-			if unit[x+1][y][z] ~= nil then sticky = 1
-			elseif unit[x-1][y][z] ~= nil then sticky = 1
-			elseif unit[x][y+1][z] ~= nil then sticky = 1
-			elseif unit[x][y-1][z] ~= nil then sticky = 1
-			else sticky = 0 end
-		else sticky = 0 end
+		if x < 5 then
+			if instanceOf(Chem,unit[x+1][y][z]) then
+				if unit[x+1][y][z].sticky ~= nil then sticky = 1 end
+			end
+		end
+		if x > 1 then
+			if instanceOf(Chem,unit[x-1][y][z]) then
+				if unit[x-1][y][z].sticky ~= nil then sticky = 1 end
+			end
+		end
+		if y < 5 then
+			if instanceOf(Chem,unit[x][y+1][z]) then
+				if unit[x][y+1][z].sticky ~= nil then sticky = 1 end
+			end
+		end
+		if y > 1 then
+			if instanceOf(Chem,unit[x][y-1][z]) then
+				if unit[x][y-1][z].sticky ~= nil then sticky = 1 end
+			end
+		end
+		if instanceOf(Chem,unit[x][y][z]) then
+			if unit[x][y][z].sticky ~= nil then
+				if x < 5 then
+					if instanceOf(Chem,unit[x+1][y][z]) then sticky = 1 end
+				end
+				if x > 1 then
+					if instanceOf(Chem,unit[x-1][y][z]) then sticky = 1 end
+				end
+				if y < 5 then
+					if instanceOf(Chem,unit[x][y+1][z]) then sticky = 1 end
+				end
+				if y > 1 then
+					if instanceOf(Chem,unit[x][y-1][z]) then sticky = 1 end
+				end
+			end
+		end
 	end
 	if sticky == 1 then
 		return 1
 	elseif density < float then
+		return 1
+	else return 0 end
+end
+
+function Build:authenticate(instance)
+	if instanceOf(Chem,instance) then
 		return 1
 	else return 0 end
 end

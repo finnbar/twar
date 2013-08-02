@@ -1,5 +1,3 @@
-Unit = { }
-Unit.__index = Unit
 field = {{},{},{},{},{},{},{},{}}
 unit = 0 --is changed in DEPLOY
 p1S = {{3,2},{4,2},{5,2},{6,2}}
@@ -15,35 +13,63 @@ offit = { }
 
 playerName = "p1S"  --temporary, will be in twar.declare(who?)
 
-function Unit.init()  --prepares the field
+require("middleclass")
+
+Unit = class("Unit")
+function Unit:init()  --prepares the field
 	for x=1,8,1 do
 		for y=1,8,1 do
-			field[x][y] = nil
+			field[x][y] = 0
+		end
+	end
+	for a=1,8,1 do
+		table.insert(unit,{})
+	end
+	for a=1,8,1 do
+		for b=1,8,1 do
+			table.insert(unit[a],{})
 		end
 	end
 end
 
-function Unit.deploy(unitOrig,unitBlocksOrig,square)   --unit & unitBlocks (from build.make) and square, which asks for which of the four spawn points the unit will be spawned into
-	unit = {{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}},{{},{},{},{},{},{},{},{}}}   --*sigh*
-	--this is needed so that Lua won't complain when I try to index anything greater than [1][1][1]
-	setmetatable(unit,Unit)
+function Unit:deploy(unitOrig,square)   --unit (from build:make) and square, which asks for which of the four spawn points the unit will be spawned into
+	unit = {}
+	for a=1,8,1 do
+		table.insert(unit,{})
+	end
+	for a=1,8,1 do
+		for b=1,8,1 do
+			table.insert(unit[a],{0})
+		end
+	end
+	for x=1,8,1 do
+		for y=1,8,1 do
+			for z=1,7,1 do
+				unit[x][y][z] = 0
+				print(unit[x][y][z])
+			end
+		end
+	end
+	if instanceOf(Build,unitOrig) == false then return "nice try, suckah!" end
 	for x=1,5,1 do
 		for y=1,5,1 do
 			for z=1,5,1 do
-				if unitOrig[x][y][z] ~= nil then
-					--expand unitOrig into unitOrig w/ block values
-					unitOrig[x][y][z] = unitBlocksOrig[unitOrig[x][y][z]]
-					if unitOrig[x][y][z].density ~= nil then   --need this NOT to happen
-						unitOrig[x][y][z].hp = unitOrig[x][y][z].density
+				if unit[x] ~= nil then
+					if unit[x][y] ~= nil then
+						if instanceOf(Chem,unitOrig[x][y][z]) then
+							--print(unitOrig[x][y][z]) uncomment for personal debug
+							unit[x+1][y+1][z+1] = unitOrig[x][y][z]
+							--print(unit[x+1][y+1][z+1])
+						else unit[x+1][y+1][z+1] = 0 end
 					end
-					if unitOrig[x][y][z].blastRes ~= nil then
-						unitOrig[x][y][z].hp = unitOrig[x][y][z].hp + unitOrig[x][y][z].blastRes
-					end
-					if unitOrig[x][y][z].hp ~= nil then print(unitOrig[x][y][z].hp) end
-					--put unitOrig into unit[7][7][6]
-					if unitOrig[x][y][z] ~= nil then unit[x+1][y+1][z+1] = unitOrig[x][y][z] end
-					if unit[x+1][y+1][z+1] ~= nil then print(unit[x+1][y+1][z+1].hp) end
 				end
+			end
+		end
+	end
+	for x=1,8,1 do
+		for y=1,8,1 do
+			for z=1,7,1 do
+				if unit[x][y][z] == nil then unit[x][y][z] = 0 end
 			end
 		end
 	end
@@ -52,13 +78,13 @@ function Unit.deploy(unitOrig,unitBlocksOrig,square)   --unit & unitBlocks (from
 	local fX = player[square][1]
 	local fY = player[square][2]
 	field[fX][fY] = unit  --in words: place unit in player 1's first spawn point by the x and y co-ordinates in the table p1S. in other words: ffffuuuuu...
-	for z=1,5,1 do  --for every value of Z test if there are any blocks, if not, block above drops down (GRAVITY!)
-		for x=1,5,1 do   --every value of X (I am so glad that I went for 5x5x5, not 10x10x10!)
-			for y=1,5,1 do --every value of Y
-				if field[fX][fY][x][y][z] == nil then     --if there's no block in that place
+	for z=1,7,1 do  --for every value of Z test if there are any blocks, if not, block above drops down (GRAVITY!)
+		for x=1,8,1 do   --every value of X (I am so glad that I went for 5x5x5, not 10x10x10!)
+			for y=1,8,1 do --every value of Y
+				if instanceOf(Chem,field[fX][fY][x][y][z]) == false then     --if there's no block in that place
 					if testFloat(x,y,z,fX,fY) == 0 then   --if not sticky or floating then
 						local copy = field[fX][fY][x][y][z+1]  --cut the block above
-						field[fX][fY][x][y][z+1] = nil   --down one level
+						field[fX][fY][x][y][z+1] = 0   --down one level
 						field[fX][fY][x][y][z] =	copy    --and paste
 					end
 				end
@@ -78,7 +104,7 @@ Unit.sense(x,y,blockX,blockY) -- if sentient, returns 0 if unpowered or 1 if pow
 ]]--
 
 
-function Unit.sense(fieldX,fieldY,x,y,z)
+function Unit:sense(fieldX,fieldY,x,y,z)
 	if field[fieldX][fieldY][x][y][z].cpu ~= nil then
 		if field[fieldX][fieldY][x][y][z].powered ~= nil then
 			return 1
@@ -88,7 +114,7 @@ function Unit.sense(fieldX,fieldY,x,y,z)
 	end
 end
 
-function Unit.on(fieldX,fieldY,x,y,z)
+function Unit:on(fieldX,fieldY,x,y,z)
 	if field[fieldX][fieldY][x][y][z].cpu ~= nil then
 		if field[fieldX][fieldY][x][y][z].cpu > 1 then
 			field[fieldX][fieldY][x][y][z].power = 4
@@ -96,7 +122,7 @@ function Unit.on(fieldX,fieldY,x,y,z)
 	end
 end
 
-function Unit.off(fieldX,fieldY,x,y,z)
+function Unit:off(fieldX,fieldY,x,y,z)
 	if field[fieldX][fieldY][x][y][z].cpu ~= nil then
 		if field[fieldX][fieldY][x][y][z].cpu > 1 then
 			field[fieldX][fieldY][x][y][z].power = nil
@@ -104,7 +130,7 @@ function Unit.off(fieldX,fieldY,x,y,z)
 	end
 end
 
-function Unit.pulse(fieldX,fieldY,x,y,z)
+function Unit:pulse(fieldX,fieldY,x,y,z)
 	if field[fieldX][fieldY][x][y][z].cpu ~= nil then
 		if field[fieldX][fieldY][x][y][z].cpu > 1 then
 			field[fieldX][fieldY][x][y][z].power = 4
@@ -119,7 +145,7 @@ function pulseCheck()
 	end
 end
 
-function Unit.update()   --run after each TURN!
+function Unit:update()   --run after each TURN!
 	testElectricity()
 	for fieldX=1,8,1 do
 		for fieldY=1,8,1 do 
@@ -143,7 +169,7 @@ end
 function testExplosives()
 	for fieldX=1,8,1 do
 		for fieldY=1,8,1 do
-			if field[fieldX][fieldY] ~= nil then
+			if field[fieldX][fieldY] ~= 0 then
 				for x=1,8,1 do
 					for y=1,8,1 do
 						for z=1,8,1 do
@@ -171,7 +197,7 @@ function testExplosives()
 	if true then         --a totally useless line only there because I couldn't be bothered to untab all of those ends :P
 		for fieldX=1,5,1 do
 			for fieldY=1,5,1 do
-				if field[fieldX][fieldY] ~= nil then
+				if field[fieldX][fieldY] ~= 0 then
 					for x=1,8,1 do
 						for y=1,8,1 do
 							for z=1,6,1 do
@@ -186,7 +212,7 @@ function testExplosives()
 										local x2 = x + test[a][1]
 										local y2 = x + test[a][2]
 										local z2 = z + test[a][3]
-										if field[fieldX][fieldY][x2][y2][z2].sticky ~= nil then
+										if field[fieldX][fieldY][x2][y2][z2].sticky ~= 0 then
 											stick = stick + field[fieldX][fieldY][x2][y2][z2].sticky
 										end
 									end
@@ -196,7 +222,7 @@ function testExplosives()
 											local y2 = y2 + a[2]
 											local z2 = z2 + a[3]
 											local power = field[fieldX][fieldY][x][y][z].explodedVal
-											if field[fieldX][fieldY][x2][y2][z2] == nil and power > 0 then
+											if field[fieldX][fieldY][x2][y2][z2] == 0 and power > 0 then
 												field[fieldX][fieldY][x2][y2][z2] = copy
 												local copy = field[fieldX][fieldY][x2][y2][z2]
 												power = power - 1
@@ -239,13 +265,13 @@ function explosion(fieldX,fieldY,x,y,z)
 		end
 		if z2 > 8 then z2 = 8 end
 		if z2 < 1 then z2 = 1 end
-		if field[fieldX][fieldY][x2][y2][z2] ~= nil then
+		if instanceOf(Chem,field[fieldX][fieldY][x2][y2][z2]) then
 			field[fieldX][fieldY][x2][y2][z2].exploded = test[a]
 			field[fieldX][fieldY][x2][y2][z2].explodedVal = field[fieldX][fieldY][x][y][z].explosive
 			calc(fieldX,fieldY,x,y,z)
 		end
 	end
-	field[fieldX][fieldY][x][y][z] = nil
+	field[fieldX][fieldY][x][y][z] = 0
 end
 
 function clearExplosion()
@@ -266,11 +292,15 @@ function testElectricity()
 	local powerSources = { }
 	for fieldX=1,8,1 do
 		for fieldY=1,8,1 do
-			if field[fieldX][fieldY] ~= nil then
+			if field[fieldX][fieldY] ~= 0 then
 				for x=1,7,1 do
 					for y=1,7,1 do
 						for z=1,6,1 do
-							field[fieldX][fieldY][x][y][z].powered = nil
+							if field[fieldX][fieldY][x][y][z] ~= nil then
+								if instanceOf(Chem,field[fieldX][fieldY][x][y][z]) then
+									field[fieldX][fieldY][x][y][z].powered = nil
+								end
+							end
 						end
 					end
 				end
@@ -280,19 +310,25 @@ function testElectricity()
 	while true do
 		for fieldX=1,8,1 do
 			for fieldY=1,8,1 do
-				if field[fieldX][fieldY] ~= nil then
+				if field[fieldX][fieldY] ~= 0 then
 					for x=1,7,1 do
 						for y=1,7,1 do
 							for z=1,6,1 do
-								if field[fieldX][fieldY][x][y][z].power ~= nil or field[fieldX][fieldY][x][y][z].powered ~= nil then
-									for a=1,6,1 do
-										local x2 = x + test[a][1]
-										local y2 = x + test[a][2]
-										local z2 = z + test[a][3]
-										if field[fieldX][fieldY][x2][y2][z2].conductivity ~= nil then
-											if field[fieldX][fieldY][x2][y2][z2].powered == nil then
-												field[fieldX][fieldY][x2][y2][z2].powered = 2
-												continue = true
+								if instanceOf(Chem,field[fieldX][fieldY][x][y][z]) then
+									if field[fieldX][fieldY][x][y][z].power ~= nil or field[fieldX][fieldY][x][y][z].powered ~= nil then
+										for a=1,6,1 do
+											local x2 = x + test[a][1]
+											local y2 = x + test[a][2]
+											local z2 = z + test[a][3]  --CURRENTLY IMPOSSIBLE TO SHARE POWER OVER FIELD SQUARES (e.g, from f[1][1][5][5][5] to f[2][1][1][5][5])
+											if x > 0 and x < 6 and y > 0 and y < 6 and z > 0 and z < 6 then
+												if instanceOf(Chem,field[fieldX][fieldY][x2][y2][z2]) then
+													if field[fieldX][fieldY][x2][y2][z2].conductivity ~= nil then
+														if field[fieldX][fieldY][x2][y2][z2].powered == nil then
+															field[fieldX][fieldY][x2][y2][z2].powered = 2
+															continue = true
+														end
+													end
+												end
 											end
 										end
 									end
@@ -303,7 +339,7 @@ function testElectricity()
 				end
 			end
 		end
-		if continue ~= true then break end
+		if continue ~= true then break end   -- why ~=? I don't know :P
 	end
 end
 
@@ -369,27 +405,78 @@ end
 
 function testFloat(x,y,z,fX,fY)
 	local density = 0
-	for zT=1,7,1 do
-		if field[fX][fY][x][y][zT].density ~= nil then
-			density = density + field[fX][fY][x][y][zT].density
+	for xT=1,5,1 do
+		for yT=1,5,1 do
+			if field[fX][fY] ~= 0 then
+				if instanceOf(Chem,field[fX][fY][xT][yT][z]) then
+					if field[fX][fY][xT][yT][z].density ~= nil then
+						density = density + field[fX][fY][xT][yT][z].density
+					end
+				end
+			end
 		end
 	end
 	local float = 0
-	for zT=1,z,1 do   --check all blocks below stated
-		if unit[x][y][zT].float ~= nil then float = float + unit[x][y][zT].float end
+	for xT=1,x,1 do   --check all blocks below stated
+		for yT=1,y,1 do
+			if field[fX][fY] ~= 0 then
+				if instanceOf(Chem,field[fX][fY][xT][yT][z]) then
+					if field[fX][fY][xT][yT][z].density ~= nil then
+						float = float + field[fX][fY][xT][yT][z].density
+					end
+				end
+			end
+		end
 	end
 	local sticky = 0
-	if field[fX][fY][x+1][y][z].sticky ~= nil then sticky = 1
-	elseif field[fX][fY][x-1][y][z].sticky ~= nil then sticky = 1
-	elseif field[fX][fY][x][y+1][z].sticky ~= nil then sticky = 1
-	elseif field[fX][fY][x][y-1][z].sticky ~= nil then sticky = 1
-	elseif field[fX][fY][x][y][z].sticky ~= nil then
-		if field[fX][fY][x+1][y][z] ~= nil then sticky = 1
-		elseif field[fX][fY][x-1][y][z] ~= nil then sticky = 1
-		elseif field[fX][fY][x][y+1][z] ~= nil then sticky = 1
-		elseif field[fX][fY][x][y-1][z] ~= nil then sticky = 1
-		else sticky = 0 end
-	else sticky = 0 end
+	for zT=1,5,1 do
+		if x < 5 then
+			if field[fX][fY] ~= 0 then
+				if instanceOf(Chem,field[fX][fY][x+1][y][z]) then
+					if field[fX][fY][x+1][y][z].sticky ~= nil then sticky = 1 end
+				end
+			end
+		end
+		if x > 1 then
+			if field[fX][fY] ~= 0 then
+				if instanceOf(Chem,field[fX][fY][x-1][y][z]) then
+					if field[fX][fY][x-1][y][z].sticky ~= nil then sticky = 1 end
+				end
+			end
+		end
+		if y < 5 then
+			if field[fX][fY] ~= 0 then
+				if instanceOf(Chem,field[fX][fY][x][y+1][z]) then
+					if field[fX][fY][x][y+1][z].sticky ~= nil then sticky = 1 end
+				end
+			end
+		end
+		if y > 1 then
+			if field[fX][fY] ~= 0 then
+				if instanceOf(Chem,field[fX][fY][x][y-1][z]) then
+					if field[fX][fY][x][y-1][z].sticky ~= nil then sticky = 1 end
+				end
+			end
+		end
+		if field[fX][fY] ~= 0 then
+			if instanceOf(Chem,field[fX][fY][x][y][z]) then
+				if field[fX][fY][x][y][z].sticky ~= nil then
+					if x < 5 then
+						if instanceOf(Chem,field[fX][fY][x+1][y][z]) then sticky = 1 end
+					end
+					if x > 1 then
+						if instanceOf(Chem,field[fX][fY][x-1][y][z]) then sticky = 1 end
+					end
+					if y < 5 then
+						if instanceOf(Chem,field[fX][fY][x][y+1][z]) then sticky = 1 end
+					end
+					if y > 1 then
+						if instanceOf(Chem,field[fX][fY][x][y-1][z]) then sticky = 1 end
+					end
+				end
+			end
+		end
+	end
 	if sticky == 1 then
 		return 1
 	elseif density < float then
@@ -399,5 +486,5 @@ end
 
 function calc(fieldX,fieldY,x,y,z)
 	field[fieldX][fieldY][x][y][z].hp = field[fieldX][fieldY][x][y][z].hp - field[fieldX][fieldY][x][y][z].explodedVal
-	if field[fieldX][fieldY][x][y][z].hp < 1 then field[fieldX][fieldY][x][y][z] = nil end
+	if field[fieldX][fieldY][x][y][z].hp < 1 then field[fieldX][fieldY][x][y][z] = 0 end
 end
