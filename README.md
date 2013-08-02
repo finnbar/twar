@@ -10,13 +10,15 @@ There is a file called temp_api.lua which gives examples of how the code works a
 
 A couple of notes: in a recent commit, naming conventions were changed from function.sub() to Function:sub(), which allows me to look out for cheaters! Grr, cheaters!
 
+Each "Function" is now its own class, so Chem:create() produces instances of the Chem class, which is checked for by Build (which creates instances of Build:new()). Unit doesn't need this as a unit is a build plus some space (although I may implement it anyway :P).
+
 But here's some quick examples of what is done:
 
 <code>block = Chem:create("Fe H U Rb")        --create a block using these elements</code>
 <code>build:placeBlock(x,y,z,block)           --place that block in the workspace</code>
 <code>build:read(x,y,z)                       --what is the block in x,y,z?</code>
 <code>unit = build:make()                     --turn the array of blocks into a moveable "unit"</code>
-<code>Unit:deploy(unit,unitBlocks,spawnPoint) --place the new "unit" on the field</code>
+<code>Unit:deploy(unit,unitBlocks,spawnPoint) --place the new "unit" on the field. Now actually works!</code>
 
 AND COMING SOON... ISH... MAYBE...
 
@@ -88,6 +90,7 @@ EVERYONE! Alright, maybe not everyone. But certainly:
 <li> Puzzlem00n, for dealing with my lack of Lua knowledge when we were creating <a href="http://allhailnoah.github.io/PonycornMusicDreamers/">"Song Of Sparks"</a> and showing me this great language!</li>
 <li> Michcioperz, a pretty great guy!</li>
 <li> iandioch, overally crazy game-making person that got me into the group as well as a formidable enemy in my first twar.</li>
+<li> LOVE2D wiki.</li>
 <li> THE LUA DOCS. Tim'll know why :P</li>
 <li> And anyone else I've forgotten.</li>
 </ul>
@@ -96,3 +99,4 @@ libraries used so far
 ===
 
 Kikito's "middleclass": https://github.com/kikito/middleclass
+(this library is awesome, use it!!!)
