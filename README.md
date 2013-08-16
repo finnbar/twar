@@ -21,10 +21,12 @@ But here's some quick examples of what is done:
 <code>Unit:deploy(unit,unitBlocks,spawnPoint) --place the new "unit" on the field. Now actually works!</code>
 <code>Unit:on(x,y,blockX,blockY,side)         --power on blockX,blockY within field x,y on side "side"</code>
 
-AND COMING SOON... ISH... MAYBE...
+IMPLEMENTED BUT UNTESTED:
 
-<code>Unit:off(x,y,blockX,blockY,side)        --pretty obvious. Implemented but untested</code>
-<code>Unit:sense(x,y,blockX,blockY,side)      --returns 0 if no electricity present, else returns 1. Implemented but untested.</code>
+<code>Unit:off(x,y,blockX,blockY,side)        --pretty obvious.</code>
+<code>Unit:sense(x,y,blockX,blockY,side)      --returns 0 if no electricity present, else returns 1.</code>
+
+AND COMING SOON... ISH... MAYBE...
 
 <code>twar:declare(@user)                     --declares (t)war on @user</code>
 <code>twar:conditions(conditions)             --sets conditions, e.g. energy limit</code>
@@ -57,17 +59,67 @@ However, there is one extra feature that you may want to know about: shortenings
 
 You can also steal other people's tweets for your code. Everyone's tweet is a useable function, for example, if I tweeted:
 
-<code>l.fun a() build:placeBlock(1,1,1,block) end"</code>
+    l.fun a()
+      build:placeBlock(1,1,1,block)
+    end
 
 then you could use it as your own with:
 
-<code>
-for x=1,5,1 do
-  t_a.a()
-end
-</code>
+    for x=1,5,1 do
+      t_a.a()
+    end
 
 allowing you to steal your opponent's good code!
+
+future features (after v0.1)
+===
+
+<ul>
+<li> Implementation of multiple languages, such as Ruby, Javascript and <a href=https://en.wikipedia.org/wiki/Malbolge>Malbolge</a>, for example: </li>
+</ul>
+
+    j.v addBlock = j.fun(var thing = 0) {   //each language is declared with <name.>, e.g j. (javascript), r. (ruby), mal. (malbolge), l. (lua), p. (python?)
+      r.i thing == 0   #it has to be done even in the case of r.i being LONGER than "if"
+        l.print(mal.run(str))  -- look, another lang, another line! as malbolge is VERY LIMITED, it only needs mal.run(). You CANNOT put more than one lang per line, except in the case of using mal.run()
+      j.}  //yes, you can end logic in another lang. it's all converted to Lua anyway.
+    }      //the converter will basically remove brackets in the if statement's arguments, and then convert "}" or whatever to "end"
+    
+This allows for some very evil obsufication, particularly with Malbolge!
+
+    str = <malbolge that returns "Build:clear(0)">
+    l.fun freeStuff()
+      thing = l.loadString(mal.run(str))
+      thing()
+    end
+
+You could trick the opponent into running the code and deleting their build!
+I'm so evil!
+And really stupid for trying to implement such crazy ideas :P
+
+<ul>
+<li> A GUI. No, seriously, that comes before everything else. </li>
+<li> An inventory, and the ability to remove units from the field. </li>
+<li> MORE HACKING METHODS! Rather than just trying to get your opponent to Build:clear(0), better methods such as passwords and public keys. Maybe:</li>
+</ul>
+
+    --each person has a PUBKEY
+    t_a.pub = "wefhoiwefnwe98238012"
+    --and a PRIVKEY
+    t_a.priv = "fwihowioncoi328iwedn"
+    --THESE ARE JUST EXAMPLES, don't be stealing my stuff!
+    --So, you can run code as other people with the command User:runAs(pub,priv)
+    pub=t_a.pub
+    priv=t_a.priv
+    User:runAs(pub,priv)
+      <awesome code>
+    end
+ 
+<ul>   
+<li>To try and get a privkey, maybe you can intercept parts of a key with computers placed near the enemy's castle? For each cpu level (silicon atom), you get one part of the key, up to a maximum of four per block.</li>
+
+
+<li> Make the arena higher, so that you can have bots that fly over others and throw bombs at them! </li>
+</ul>
 
 naq
 ===
