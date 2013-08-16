@@ -1,5 +1,5 @@
 field = {{},{},{},{},{},{},{},{}}
-unit = 0 --is changed in DEPLOY
+unit = {} --is changed in DEPLOY
 p1S = {{3,2},{4,2},{5,2},{6,2}}
 p2S = {{3,7},{4,7},{5,7},{6,7}}
 p3S = {{2,3},{2,4},{2,5},{2,6}}
@@ -17,6 +17,7 @@ require("middleclass")
 
 Unit = class("Unit")
 function Unit:init()  --prepares the field
+	unit = {}
 	for x=1,8,1 do
 		for y=1,8,1 do
 			field[x][y] = 0
@@ -34,6 +35,7 @@ end
 
 function Unit:deploy(unitOrig,square)   --unit (from build:make) and square, which asks for which of the four spawn points the unit will be spawned into
 	unit = {}
+	if instanceOf(Build,unitOrig) then unit = Build:new() end
 	for a=1,8,1 do
 		table.insert(unit,{})
 	end
@@ -46,7 +48,7 @@ function Unit:deploy(unitOrig,square)   --unit (from build:make) and square, whi
 		for y=1,8,1 do
 			for z=1,7,1 do
 				unit[x][y][z] = 0
-				print(unit[x][y][z])
+				---print(unit[x][y][z])
 			end
 		end
 	end
@@ -118,16 +120,20 @@ function Unit:on(fieldX,fieldY,x,y,z)
 	if field[fieldX][fieldY][x][y][z].cpu ~= nil then
 		if field[fieldX][fieldY][x][y][z].cpu > 1 then
 			field[fieldX][fieldY][x][y][z].power = 4
+			return 1
 		end
 	end
+	return 0
 end
 
 function Unit:off(fieldX,fieldY,x,y,z)
 	if field[fieldX][fieldY][x][y][z].cpu ~= nil then
 		if field[fieldX][fieldY][x][y][z].cpu > 1 then
 			field[fieldX][fieldY][x][y][z].power = nil
+			return 1
 		end
 	end
+	return 0
 end
 
 function Unit:pulse(fieldX,fieldY,x,y,z)
@@ -135,8 +141,10 @@ function Unit:pulse(fieldX,fieldY,x,y,z)
 		if field[fieldX][fieldY][x][y][z].cpu > 1 then
 			field[fieldX][fieldY][x][y][z].power = 4
 			table.insert(offit,{fieldX,fieldY,x,y,z})
+			return 1
 		end
 	end
+	return 0
 end
 
 function pulseCheck()
@@ -149,14 +157,18 @@ function Unit:update()   --run after each TURN!
 	testElectricity()
 	for fieldX=1,8,1 do
 		for fieldY=1,8,1 do 
-			for x=1,7,1 do
-				for y=1,7,1 do
-					for z=1,6,1 do
-						if field[fieldX][fieldY][x][y][z].force ~= nil and field[fieldX][fieldY][x][y][z].isPowered == true then
-							local testDir = {x,y}
-							dir = findDir(testDir)
-							if dir ~= nil then move(fieldX,fieldY,dir) end   --needs rotation!!!
-							dir = nil
+			if instanceOf(Build,field[fieldX][fieldY]) then
+				for x=1,8,1 do
+					for y=1,8,1 do
+						for z=1,7,1 do
+							if instanceOf(Chem,field[fieldX][fieldY][x][y][z]) then --produces error for some reason :P
+								if field[fieldX][fieldY][x][y][z].force ~= nil and field[fieldX][fieldY][x][y][z].isPowered == true then
+									local testDir = {x,y}
+									dir = findDir(testDir)
+									if dir ~= nil then move(fieldX,fieldY,dir) end   --needs rotation!!!
+									dir = nil
+								end
+							end
 						end
 					end
 				end
@@ -169,23 +181,27 @@ end
 function testExplosives()
 	for fieldX=1,8,1 do
 		for fieldY=1,8,1 do
-			if field[fieldX][fieldY] ~= 0 then
+			if instanceOf(Build,field[fieldX][fieldY]) then
 				for x=1,8,1 do
 					for y=1,8,1 do
 						for z=1,8,1 do
-							if field[fieldX][fieldY][x][y][z].explosive ~= nil then
-								for a=1,6,1 do
-									local agree = false
-									local x2 = x + test[a][1]
-									local y2 = x + test[a][2]
-									local z2 = z + test[a][3]
-									if field[fieldX][fieldY][x2][y2][z2].powered ~= nil then
-										agree = true
+							if instanceOf(Chem,field[fieldX][fieldY][x][y][z]) then
+								if field[fieldX][fieldY][x][y][z].explosive ~= nil then
+									for a=1,6,1 do
+										local agree = false
+										local x2 = x + tests[a][1]
+										local y2 = x + tests[a][2]
+										local z2 = z + tests[a][3]
+										if instanceOf(Chem,field[fieldX][fieldY][x2][y2][z2]) then
+											if field[fieldX][fieldY][x2][y2][z2].powered ~= nil then
+												agree = true
+											end
+										end
 									end
-								end
-								if agree == true then
-									--EXPLOSION!!!!
-									explosion(fieldX,fieldY,x,y,z)
+									if agree == true then
+										--EXPLOSION!!!!
+										explosion(fieldX,fieldY,x,y,z)
+									end
 								end
 							end
 						end
@@ -201,34 +217,36 @@ function testExplosives()
 					for x=1,8,1 do
 						for y=1,8,1 do
 							for z=1,6,1 do
-								if field[fieldX][fieldY][x][y][z].exploded ~= nil then
-									local stick = 0
-									local copy = field[fieldX][fieldY][x][y][z]
-									local x2 = x
-									local y2 = y
-									local z2 = z
-									local a = field[fieldX][fieldY][x][y][z].exploded
-									for a=1,6,1 do
-										local x2 = x + test[a][1]
-										local y2 = x + test[a][2]
-										local z2 = z + test[a][3]
-										if field[fieldX][fieldY][x2][y2][z2].sticky ~= 0 then
-											stick = stick + field[fieldX][fieldY][x2][y2][z2].sticky
+								if instanceOf(Chem,field[fieldX][fieldY][x][y][z]) then
+									if field[fieldX][fieldY][x][y][z].exploded ~= nil then
+										local stick = 0
+										local copy = field[fieldX][fieldY][x][y][z]
+										local x2 = x
+										local y2 = y
+										local z2 = z
+										local a = field[fieldX][fieldY][x][y][z].exploded
+										for a=1,6,1 do
+											local x2 = x + test[a][1]
+											local y2 = x + test[a][2]
+											local z2 = z + test[a][3]
+											if field[fieldX][fieldY][x2][y2][z2].sticky ~= 0 then
+												stick = stick + field[fieldX][fieldY][x2][y2][z2].sticky
+											end
 										end
-									end
-									if stick < field[fieldX][fieldY][x][y][z].explodedVal then
-										while true do
-											local x2 = x2 + a[1]
-											local y2 = y2 + a[2]
-											local z2 = z2 + a[3]
-											local power = field[fieldX][fieldY][x][y][z].explodedVal
-											if field[fieldX][fieldY][x2][y2][z2] == 0 and power > 0 then
-												field[fieldX][fieldY][x2][y2][z2] = copy
-												local copy = field[fieldX][fieldY][x2][y2][z2]
-												power = power - 1
-											else
-												explosion(fieldX,fieldY,x2,y2,z2)
-												break
+										if stick < field[fieldX][fieldY][x][y][z].explodedVal then
+											while true do
+												local x2 = x2 + a[1]
+												local y2 = y2 + a[2]
+												local z2 = z2 + a[3]
+												local power = field[fieldX][fieldY][x][y][z].explodedVal
+												if field[fieldX][fieldY][x2][y2][z2] == 0 and power > 0 then
+													field[fieldX][fieldY][x2][y2][z2] = copy
+													local copy = field[fieldX][fieldY][x2][y2][z2]
+													power = power - 1
+												else
+													explosion(fieldX,fieldY,x2,y2,z2)
+													break
+												end
 											end
 										end
 									end
@@ -277,10 +295,14 @@ end
 function clearExplosion()
 	for fieldX=1,8,1 do
 		for fieldY=1,8,1 do
-			for x=1,8,1 do
-				for y=1,8,1 do
-					for z=1,8,1 do
-						field[fieldX][fieldY][x][y][z].exploded = nil
+			if instanceOf(Build,field[fieldX][fieldY]) then
+				for x=1,8,1 do
+					for y=1,8,1 do
+						for z=1,8,1 do
+							if instanceOf(Chem,field[fieldX][fieldY][x][y][z]) then
+								field[fieldX][fieldY][x][y][z].exploded = nil
+							end
+						end
 					end
 				end
 			end
@@ -293,13 +315,11 @@ function testElectricity()
 	for fieldX=1,8,1 do
 		for fieldY=1,8,1 do
 			if field[fieldX][fieldY] ~= 0 then
-				for x=1,7,1 do
-					for y=1,7,1 do
-						for z=1,6,1 do
-							if field[fieldX][fieldY][x][y][z] ~= nil then
-								if instanceOf(Chem,field[fieldX][fieldY][x][y][z]) then
-									field[fieldX][fieldY][x][y][z].powered = nil
-								end
+				for x=1,8,1 do
+					for y=1,8,1 do
+						for z=1,7,1 do
+							if instanceOf(Chem,field[fieldX][fieldY][x][y][z]) then
+								field[fieldX][fieldY][x][y][z].powered = nil
 							end
 						end
 					end
@@ -317,9 +337,9 @@ function testElectricity()
 								if instanceOf(Chem,field[fieldX][fieldY][x][y][z]) then
 									if field[fieldX][fieldY][x][y][z].power ~= nil or field[fieldX][fieldY][x][y][z].powered ~= nil then
 										for a=1,6,1 do
-											local x2 = x + test[a][1]
-											local y2 = x + test[a][2]
-											local z2 = z + test[a][3]  --CURRENTLY IMPOSSIBLE TO SHARE POWER OVER FIELD SQUARES (e.g, from f[1][1][5][5][5] to f[2][1][1][5][5])
+											local x2 = x + tests[a][1]
+											local y2 = x + tests[a][2]
+											local z2 = z + tests[a][3]  --CURRENTLY IMPOSSIBLE TO SHARE POWER OVER FIELD SQUARES (e.g, from f[1][1][5][5][5] to f[2][1][1][5][5])
 											if x > 0 and x < 6 and y > 0 and y < 6 and z > 0 and z < 6 then
 												if instanceOf(Chem,field[fieldX][fieldY][x2][y2][z2]) then
 													if field[fieldX][fieldY][x2][y2][z2].conductivity ~= nil then

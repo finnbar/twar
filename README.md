@@ -19,12 +19,12 @@ But here's some quick examples of what is done:
 <code>build:read(x,y,z)                       --what is the block in x,y,z?</code>
 <code>unit = build:make()                     --turn the array of blocks into a moveable "unit"</code>
 <code>Unit:deploy(unit,unitBlocks,spawnPoint) --place the new "unit" on the field. Now actually works!</code>
+<code>Unit:on(x,y,blockX,blockY,side)         --power on blockX,blockY within field x,y on side "side"</code>
 
 AND COMING SOON... ISH... MAYBE...
 
-<code>Unit:on(x,y,blockX,blockY,side)         --power on blockX,blockY within field x,y on side "side"</code>
-<code>Unit:off(x,y,blockX,blockY,side)        --pretty obvious</code>
-<code>Unit:sense(x,y,blockX,blockY,side)      --returns 0 if no electricity present, else returns 1</code>
+<code>Unit:off(x,y,blockX,blockY,side)        --pretty obvious. Implemented but untested</code>
+<code>Unit:sense(x,y,blockX,blockY,side)      --returns 0 if no electricity present, else returns 1. Implemented but untested.</code>
 
 <code>twar:declare(@user)                     --declares (t)war on @user</code>
 <code>twar:conditions(conditions)             --sets conditions, e.g. energy limit</code>
